@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+backend/venv/
+.venv/
+venv/
+
+# Production builds
+dist/
+build/
+.vite/
+
+# Python cache & artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.sqlite
+*.db-journal
+
+# Environment & local state
+.env
+.env.local
+*.log
+
+# IDE & scratch files
+.scratch/
+test_shot.png
