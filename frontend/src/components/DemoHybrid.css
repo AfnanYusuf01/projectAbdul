@@ -1,0 +1,633 @@
+/* ==========================================================================
+   Demo Kriptografi Hibrida - Phone-to-Phone Arched Transfer Animation
+   Inspirasi visual: Lengkungan koin emas & paket terenkripsi meluncur 60fps
+   ========================================================================== */
+
+.crypto-demo-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+/* Header & Status Step Flow */
+.crypto-step-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-card);
+  padding: 14px 22px;
+  border-radius: 18px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.crypto-step-list {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.crypto-step-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  transition: all 0.3s ease;
+}
+
+.crypto-step-pill.active {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+  box-shadow: 0 0 14px rgba(37, 99, 235, 0.4);
+}
+
+.crypto-step-pill.completed {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.crypto-step-separator {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+/* ==========================================================================
+   ARENA TRANSFER: PONSEL PENGIRIM -> LENGKUNGAN BUSUR KOIN -> PONSEL PENERIMA
+   ========================================================================== */
+.transfer-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: radial-gradient(circle at 50% 30%, rgba(37, 99, 235, 0.08) 0%, rgba(244, 246, 250, 0.7) 100%);
+  padding: 30px 16px;
+  border-radius: 28px;
+  border: 1px solid var(--border-color);
+  position: relative;
+  overflow: hidden;
+  min-height: 620px;
+}
+
+.theme-dark .transfer-stage {
+  background: radial-gradient(circle at 50% 30%, rgba(37, 99, 235, 0.16) 0%, rgba(11, 15, 25, 0.9) 100%);
+}
+
+/* Background floating decorative elements (dots, sparkles) */
+.stage-bg-blob {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(50px);
+  z-index: 0;
+}
+
+.stage-bg-blob.blob-left {
+  width: 320px;
+  height: 320px;
+  background: rgba(56, 189, 248, 0.2);
+  top: 5%;
+  left: 2%;
+}
+
+.stage-bg-blob.blob-right {
+  width: 340px;
+  height: 340px;
+  background: rgba(16, 185, 129, 0.2);
+  bottom: 5%;
+  right: 2%;
+}
+
+/* --------------------------------------------------------------------------
+   PHONE WRAPPER & HAND MOCKUP (DUA SMARTPHONE MEWAH)
+   -------------------------------------------------------------------------- */
+.phone-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 5;
+  position: relative;
+}
+
+.phone-device {
+  width: 280px;
+  height: 540px;
+  background: #0f172a;
+  border: 9px solid #1e293b;
+  border-radius: 42px;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.35),
+    0 0 0 2px #334155,
+    0 0 25px rgba(37, 99, 235, 0.15);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.phone-device.active-glow-sender {
+  border-color: #2563eb;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.4),
+    0 0 0 3px #2563eb,
+    0 0 35px rgba(37, 99, 235, 0.5);
+  transform: translateY(-2px);
+}
+
+.phone-device.active-glow-receiver {
+  border-color: #10b981;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.4),
+    0 0 0 3px #10b981,
+    0 0 35px rgba(16, 185, 129, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Notch / Dynamic Island */
+.phone-notch-bar {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 82px;
+  height: 18px;
+  background: #020617;
+  border-radius: 10px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.notch-speaker {
+  width: 34px;
+  height: 3px;
+  background: #334155;
+  border-radius: 2px;
+}
+
+.notch-camera {
+  width: 6px;
+  height: 6px;
+  background: #1e1b4b;
+  border-radius: 50%;
+}
+
+/* Screen container inside phone */
+.phone-display {
+  flex-grow: 1;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  border-radius: 33px;
+  overflow: hidden;
+  position: relative;
+  font-family: var(--font-sans);
+}
+
+.theme-dark .phone-display {
+  background: #0f172a;
+}
+
+/* Phone Status Bar */
+.phone-top-status {
+  height: 34px;
+  padding: 10px 16px 0 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: #1e293b;
+  z-index: 10;
+}
+
+.phone-top-status.sender-bar {
+  background: linear-gradient(135deg, #1d4ed8, #2563eb);
+}
+
+.phone-top-status.receiver-bar {
+  background: linear-gradient(135deg, #059669, #10b981);
+}
+
+/* --------------------------------------------------------------------------
+   KONTEN PONSEL KIRI (PENGIRIM / NASABAH)
+   -------------------------------------------------------------------------- */
+.sender-screen-content {
+  flex-grow: 1;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  overflow-y: auto;
+}
+
+/* Kartu Pembayaran Virtual (ATM / Credit Card) */
+.virtual-card {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  border-radius: 16px;
+  padding: 12px 14px;
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.virtual-card::before {
+  content: '';
+  position: absolute;
+  top: -30px;
+  right: -30px;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.card-chip-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.sim-chip {
+  width: 26px;
+  height: 18px;
+  background: linear-gradient(135deg, #fbbf24, #d97706);
+  border-radius: 4px;
+  border: 1px solid #b45309;
+}
+
+.card-bank-name {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.card-number {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.card-holder-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.65rem;
+  opacity: 0.85;
+}
+
+/* Form Transaksi di Layar Ponsel Pengirim */
+.sender-input-box {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 7px 11px;
+  display: flex;
+  flex-direction: column;
+}
+
+.theme-dark .sender-input-box {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.sender-input-title {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.sender-input-val {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  border: none;
+  background: transparent;
+  outline: none;
+  font-family: inherit;
+}
+
+/* Tombol Transfer Utama */
+.btn-phone-transfer {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  border: none;
+  border-radius: 14px;
+  padding: 11px;
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+  margin-top: auto;
+  transition: all 0.25s ease;
+}
+
+.btn-phone-transfer:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
+}
+
+.btn-phone-transfer:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* --------------------------------------------------------------------------
+   KONTEN PONSEL KANAN (PENERIMA / MERCHANT / SOC SERVER)
+   -------------------------------------------------------------------------- */
+.receiver-screen-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  text-align: center;
+  position: relative;
+}
+
+/* Idle State on Receiver Phone */
+.receiver-waiting-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: #64748b;
+}
+
+.radar-spinner {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  border: 2px dashed #06b6d4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: spinRadar 6s linear infinite;
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.15);
+}
+
+@keyframes spinRadar {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Landing Ripple Effect saat Koin Tiba di Ponsel Kanan */
+.landing-beacon {
+  position: absolute;
+  top: 30%;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 3px solid #10b981;
+  animation: landingRipple 1s ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes landingRipple {
+  0% { transform: scale(0.6); opacity: 1; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
+/* Success State: Lingkaran Centang Hijau Besar seperti Gambar */
+.success-check-circle {
+  width: 105px;
+  height: 105px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #10b981, #059669);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.6);
+  margin-bottom: 14px;
+  animation: popBounce 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes popBounce {
+  0% { transform: scale(0); opacity: 0; }
+  70% { transform: scale(1.18); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.success-receipt-card {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.72rem;
+  animation: fadeIn 0.4s ease 0.2s both;
+}
+
+.theme-dark .success-receipt-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.receipt-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.receipt-key {
+  color: #64748b;
+}
+
+.receipt-val {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* --------------------------------------------------------------------------
+   BAGIAN TENGAH: LENGKUNGAN PARABOLA TRANSFER (ARCHED MOTION HIGHWAY)
+   -------------------------------------------------------------------------- */
+.transfer-highway-bridge {
+  flex-grow: 1;
+  max-width: 480px;
+  height: 420px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.arc-svg-canvas {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* Moving Dash Laser Effect */
+@keyframes flowDash {
+  to {
+    stroke-dashoffset: -32;
+  }
+}
+
+.arc-active-stream {
+  stroke-dasharray: 8 8;
+  animation: flowDash 0.7s linear infinite;
+}
+
+/* Flying Gold Coins & Encryption Badges (Drop Shadows & Glow) */
+.coin-flying-group {
+  filter: drop-shadow(0 6px 14px rgba(245, 158, 11, 0.8));
+}
+
+.token-flying-aes {
+  filter: drop-shadow(0 6px 14px rgba(6, 182, 212, 0.8));
+}
+
+.token-flying-rsa {
+  filter: drop-shadow(0 6px 14px rgba(234, 179, 8, 0.8));
+}
+
+/* Sparkle twinkle animation */
+.sparkle-star {
+  animation: sparkleTwinkle 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes sparkleTwinkle {
+  0% { opacity: 0.2; transform: scale(0.7); }
+  100% { opacity: 1; transform: scale(1.3); }
+}
+
+/* Middle Status Telemetry Badge */
+.transfer-hud-badge {
+  position: absolute;
+  top: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  padding: 7px 18px;
+  border-radius: 20px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: var(--primary-blue);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 10;
+}
+
+.pulse-dot-green {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 10px #10b981;
+  animation: pulseGreen 1s infinite alternate;
+}
+
+@keyframes pulseGreen {
+  from { transform: scale(0.8); opacity: 0.7; }
+  to { transform: scale(1.2); opacity: 1; }
+}
+
+/* ==========================================================================
+   INSPEKTUR TEKNIS KRIPTOGRAFI (TABS DETAIL)
+   ========================================================================== */
+.crypto-inspector {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04);
+}
+
+.inspector-tabs-row {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.inspector-btn {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.inspector-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+.inspector-btn.active {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.25);
+}
+
+.inspector-terminal {
+  background: #05070c;
+  border: 1px solid #1e293b;
+  border-radius: 14px;
+  padding: 16px;
+  color: #10b981;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  line-height: 1.6;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+/* Keyframe Utility Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Responsive adjustments */
+@media (max-width: 1050px) {
+  .transfer-stage {
+    flex-direction: column;
+    min-height: auto;
+  }
+  .transfer-highway-bridge {
+    width: 100%;
+    height: 220px;
+  }
+}

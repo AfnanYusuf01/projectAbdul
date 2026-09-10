@@ -13,7 +13,7 @@ import { Sidebar } from './components/Sidebar';
 import { Topbar } from './components/Topbar';
 import './components/WillowViews.css';
 
-const API_BASE = window.location.port === '5173' || window.location.port === '5174' 
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://localhost:8000' 
   : '';
 
@@ -93,45 +93,47 @@ export default function App() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Ping health check endpoint without token requirement
-        const healthRes = await fetch(`${API_BASE}/api/health`);
-        if (healthRes.ok) {
-          setIsBackendOnline(true);
+        // Ping health check endpoint and ensure response is valid JSON from FastAPI
+        const healthRes = await fetch(`${API_BASE}/api/health`).catch(() => null);
+        if (healthRes && healthRes.ok) {
+          const contentType = healthRes.headers.get('content-type') || '';
+          if (contentType.includes('application/json')) {
+            const healthData = await healthRes.json().catch(() => null);
+            if (healthData && healthData.status === 'ok') {
+              setIsBackendOnline(true);
 
-          if (token) {
-            const headers = { 'Authorization': `Bearer ${token}` };
-            // Fetch real data from server
-            const [txsRes, rlsRes, alrtsRes, logsRes, mtrcsRes] = await Promise.all([
-              fetch(`${API_BASE}/api/transactions`, { headers }),
-              fetch(`${API_BASE}/api/rules`, { headers }),
-              fetch(`${API_BASE}/api/alerts`, { headers }),
-              fetch(`${API_BASE}/api/audit-logs`, { headers }),
-              fetch(`${API_BASE}/api/performance/metrics`, { headers })
-            ]);
+              if (token) {
+                const headers = { 'Authorization': `Bearer ${token}` };
+                // Fetch real data from server
+                const [txsRes, rlsRes, alrtsRes, logsRes, mtrcsRes] = await Promise.all([
+                  fetch(`${API_BASE}/api/transactions`, { headers }).catch(() => null),
+                  fetch(`${API_BASE}/api/rules`, { headers }).catch(() => null),
+                  fetch(`${API_BASE}/api/alerts`, { headers }).catch(() => null),
+                  fetch(`${API_BASE}/api/audit-logs`, { headers }).catch(() => null),
+                  fetch(`${API_BASE}/api/performance/metrics`, { headers }).catch(() => null)
+                ]);
 
-            if (txsRes.ok && rlsRes.ok && alrtsRes.ok && logsRes.ok && mtrcsRes.ok) {
-              const txs = await txsRes.json();
-              const rls = await rlsRes.json();
-              const alrts = await alrtsRes.json();
-              const logs = await logsRes.json();
-              const mtrcs = await mtrcsRes.json();
+                if (txsRes?.ok && rlsRes?.ok && alrtsRes?.ok && logsRes?.ok && mtrcsRes?.ok) {
+                  const txs = await txsRes.json().catch(() => []);
+                  const rls = await rlsRes.json().catch(() => []);
+                  const alrts = await alrtsRes.json().catch(() => []);
+                  const logs = await logsRes.json().catch(() => []);
+                  const mtrcs = await mtrcsRes.json().catch(() => null);
 
-              setTransactions(Array.isArray(txs) ? txs : []);
-              setRules(Array.isArray(rls) ? rls : []);
-              setAlerts(Array.isArray(alrts) ? alrts : []);
-              setAuditLogs(Array.isArray(logs) ? logs : []);
-              setMetrics(mtrcs);
-              return;
-            } else {
-              // If unauthorized, clear invalid token to trigger login screen
-              if (txsRes.status === 401 || alrtsRes.status === 401) {
-                handleLogout();
+                  setTransactions(Array.isArray(txs) ? txs : []);
+                  setRules(Array.isArray(rls) ? rls : []);
+                  setAlerts(Array.isArray(alrts) ? alrts : []);
+                  setAuditLogs(Array.isArray(logs) ? logs : []);
+                  if (mtrcs) setMetrics(mtrcs);
+                  return;
+                } else if (txsRes?.status === 401 || alrtsRes?.status === 401) {
+                  handleLogout();
+                  return;
+                }
+              } else {
                 return;
               }
             }
-          } else {
-            // Backend is online but user is not authenticated yet
-            return;
           }
         }
       } catch (e) {
@@ -186,19 +188,21 @@ export default function App() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username: usernameInput, password: passwordInput })
         });
-        if (!res.ok) {
-          const errData = await res.json();
-          throw new Error(errData.detail || 'Kredensial salah.');
+        const contentType = res.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const data = await res.json();
+          if (!res.ok) {
+            throw new Error(data.detail || 'Kredensial salah.');
+          }
+          setToken(data.access_token);
+          setRole(data.role);
+          sessionStorage.setItem('token', data.access_token);
+          sessionStorage.setItem('role', data.role);
+          return true;
         }
-        const data = await res.json();
-        setToken(data.access_token);
-        setRole(data.role);
-        sessionStorage.setItem('token', data.access_token);
-        sessionStorage.setItem('role', data.role);
-        return true;
       }
     } catch (e: any) {
-      if (isBackendOnline) {
+      if (isBackendOnline && e.message && !e.message.includes('JSON')) {
         throw new Error(e.message || 'Gagal login.');
       }
     }
