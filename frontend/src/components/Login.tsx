@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ShieldIcon, SearchIcon } from './Icons';
 import './Login.css';
 
 interface LoginProps {
@@ -32,8 +33,9 @@ export const Login: React.FC<LoginProps> = ({
     setError(null);
     try {
       await onLogin(username.trim(), password);
-    } catch (err: any) {
-      setError(err.message || 'Login gagal. Periksa kembali kredensial Anda.');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Login gagal. Periksa kembali kredensial Anda.';
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -222,9 +224,8 @@ export const Login: React.FC<LoginProps> = ({
               onClick={() => handleQuickSelect('admin')}
               disabled={loading}
             >
-              <span className="willow-role-icon">🛡️</span>
-              <span className="willow-role-label">Admin</span>
-              <span className="willow-role-desc">Superuser</span>
+              <span className="willow-role-icon"><ShieldIcon size={20} /></span>
+              <span className="willow-role-label">Super Admin</span>
             </button>
             <button 
               type="button"
@@ -232,9 +233,8 @@ export const Login: React.FC<LoginProps> = ({
               onClick={() => handleQuickSelect('analyst')}
               disabled={loading}
             >
-              <span className="willow-role-icon">🔍</span>
+              <span className="willow-role-icon"><SearchIcon size={20} /></span>
               <span className="willow-role-label">Analyst</span>
-              <span className="willow-role-desc">L2 Fraud</span>
             </button>
             <button 
               type="button"
@@ -242,9 +242,10 @@ export const Login: React.FC<LoginProps> = ({
               onClick={() => handleQuickSelect('operator')}
               disabled={loading}
             >
-              <span className="willow-role-icon">⚙️</span>
-              <span className="willow-role-label">Operator</span>
-              <span className="willow-role-desc">L1 Monitor</span>
+              <span className="willow-role-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              </span>
+              <span className="willow-role-label">Operator Demo</span>
             </button>
           </div>
           <div className="willow-quick-hint">

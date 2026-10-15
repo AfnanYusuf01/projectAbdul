@@ -27,7 +27,8 @@ class TransactionCreate(BaseModel):
     amount: float
     channel: str
     payload: str
-
+    recipient_name: Optional[str] = None
+    recipient_account: Optional[str] = None
 class TransactionResponse(BaseModel):
     id: int
     transaction_id: str
@@ -35,6 +36,8 @@ class TransactionResponse(BaseModel):
     customer_id: str
     amount: float
     channel: str
+    recipient_name: Optional[str] = None
+    recipient_account: Optional[str] = None
     encrypted_payload: str
     encrypted_session_key: str
     iv: str
@@ -88,7 +91,7 @@ class FraudAlertResponse(BaseModel):
 class FraudAlertUpdate(BaseModel):
     status: str
     notes: Optional[str] = None
-
+    transaction_status: Optional[str] = None
 # ----------------- Audit Log Schemas -----------------
 class AuditLogResponse(BaseModel):
     id: int

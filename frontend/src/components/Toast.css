@@ -1,0 +1,155 @@
+/* ============================================================ */
+/* FLOATING TOAST NOTIFICATION STYLING (MATCHING IMAGE #6)       */
+/* ============================================================ */
+
+.jt-toast-container {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 440px;
+  width: calc(100vw - 48px);
+  pointer-events: none;
+}
+
+.jt-toast-card {
+  pointer-events: auto;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.15), 0 0 1px 1px rgba(0, 0, 0, 0.05);
+  display: flex;
+  position: relative;
+  overflow: hidden;
+  animation: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid #e2e8f0;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+@keyframes toastSlideIn {
+  from {
+    transform: translateX(100%) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Left Vertical Colored Accent Bar (Matching Image #6) */
+.jt-toast-bar {
+  width: 6px;
+  flex-shrink: 0;
+}
+
+.jt-toast-card.success .jt-toast-bar {
+  background-color: #10b981;
+}
+
+.jt-toast-card.danger .jt-toast-bar {
+  background-color: #ef4444;
+}
+
+.jt-toast-card.warning .jt-toast-bar {
+  background-color: #f59e0b;
+}
+
+.jt-toast-card.info .jt-toast-bar {
+  background-color: #2563eb;
+}
+
+/* Toast Body */
+.jt-toast-inner {
+  padding: 14px 16px 14px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex-grow: 1;
+}
+
+.jt-toast-icon-wrap {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.jt-toast-card.success .jt-toast-icon-wrap {
+  background-color: #ecfdf5;
+  color: #10b981;
+}
+
+.jt-toast-card.danger .jt-toast-icon-wrap {
+  background-color: #fef2f2;
+  color: #ef4444;
+}
+
+.jt-toast-card.warning .jt-toast-icon-wrap {
+  background-color: #fffbeb;
+  color: #f59e0b;
+}
+
+.jt-toast-card.info .jt-toast-icon-wrap {
+  background-color: #eff6ff;
+  color: #2563eb;
+}
+
+.jt-toast-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.jt-toast-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.25;
+}
+
+.jt-toast-card.danger .jt-toast-title {
+  color: #dc2626;
+}
+
+.jt-toast-card.success .jt-toast-title {
+  color: #059669;
+}
+
+.jt-toast-message {
+  font-size: 0.8rem;
+  color: #475569;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.jt-toast-meta {
+  font-size: 0.68rem;
+  color: #94a3b8;
+  margin-top: 4px;
+  font-family: var(--font-mono);
+}
+
+.jt-toast-close-btn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 2px 4px;
+  font-size: 1rem;
+  line-height: 1;
+  border-radius: 4px;
+  transition: color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.jt-toast-close-btn:hover {
+  color: #0f172a;
+}

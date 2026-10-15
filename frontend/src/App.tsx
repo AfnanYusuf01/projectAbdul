@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Dashboard } from './components/Dashboard';
 import { Transactions } from './components/Transactions';
 import { FraudDetection } from './components/FraudDetection';
@@ -9,18 +9,33 @@ import { Performance } from './components/Performance';
 import { Login } from './components/Login';
 import { DemoHybrid } from './components/DemoHybrid';
 import { CustomerMobile } from './components/CustomerMobile';
+import { UserApp } from './components/user/UserApp';
 import { Sidebar } from './components/Sidebar';
 import { Topbar } from './components/Topbar';
+import { ThesisReports } from './components/ThesisReports';
+import { Toast } from './components/Toast';
+import { UserManagement } from './components/UserManagement';
+import type { Transaction, FraudAlert, FraudRule, AuditLog, PerformanceMetrics, DecryptPayload, ToastNotification, SystemNotification } from './types';
+import { INITIAL_MOCK_RULES, INITIAL_MOCK_LOGS, localEncrypt, simulateOfflineBurst, simulateOfflineSingleTransaction, INITIAL_NOTIFICATIONS, mockRotateKey, mockRunBenchmark, mockEvaluateDataset, mockTamperTest } from './offlineSimulation';
 import './components/WillowViews.css';
 
-const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-  ? 'http://localhost:8000' 
-  : '';
+const API_BASE = '';
 
 export default function App() {
+  const [isDemoMobileRoute, setIsDemoMobileRoute] = useState<boolean>(() =>
+    window.location.pathname.startsWith('/demo-mobile')
+  );
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [isBackendOnline, setIsBackendOnline] = useState<boolean>(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+
+  useEffect(() => {
+    const handleRouteChange = () => {
+      setIsDemoMobileRoute(window.location.pathname.startsWith('/demo-mobile'));
+    };
+    window.addEventListener('popstate', handleRouteChange);
+    return () => window.removeEventListener('popstate', handleRouteChange);
+  }, []);
 
   useEffect(() => {
     document.documentElement.className = theme === 'dark' ? 'theme-dark' : 'theme-light';
@@ -33,13 +48,63 @@ export default function App() {
   // Auth States
   const [token, setToken] = useState<string | null>(sessionStorage.getItem('token'));
   const [role, setRole] = useState<string | null>(sessionStorage.getItem('role'));
+  const getAllowedTabsForRole = (userRole: string | null) => {
+    if (userRole === 'FraudAnalyst') {
+      return ['dashboard', 'transactions', 'users', 'rules', 'alerts', 'crypto', 'logs', 'reports'];
+    }
+    if (userRole === 'SystemOperator') {
+      return ['demo', 'mobile', 'performance'];
+    }
+    return ['dashboard', 'transactions', 'users', 'rules', 'alerts', 'crypto', 'logs', 'performance', 'reports', 'demo', 'mobile'];
+  };
 
+  const getDefaultTabForRole = (userRole: string | null) => {
+    if (userRole === 'SystemOperator') return 'demo';
+    if (userRole === 'FraudAnalyst') return 'transactions';
+    return 'dashboard';
+  };
+
+  useEffect(() => {
+    if (role) {
+      const allowed = getAllowedTabsForRole(role);
+      if (!allowed.includes(activeTab)) {
+        setActiveTab(getDefaultTabForRole(role));
+      }
+    }
+  }, [role, activeTab]);
+
+  const [toasts, setToasts] = useState<ToastNotification[]>([]);
+  const [notifications, setNotifications] = useState<SystemNotification[]>(INITIAL_NOTIFICATIONS);
+  const seenTxIdsRef = useRef<Set<string>>(new Set());
+  const seenAlertIdsRef = useRef<Set<string | number>>(new Set());
+  const isInitializedRef = useRef<boolean>(false);
+
+  const handleMarkNotifAsRead = (id: string) => setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+  const handleMarkAllNotifsAsRead = () => setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+  const handleClearNotifications = () => setNotifications([]);
+  const addToast = (type: 'success' | 'danger' | 'warning' | 'info', title: string, message: string) => {
+    const newToast: ToastNotification = {
+      id: 'toast-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+      type,
+      title,
+      message,
+      timestamp: new Date().toLocaleTimeString('id-ID') + ' WIB'
+    };
+    setToasts(prev => [newToast, ...prev.slice(0, 4)]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== newToast.id));
+    }, 6000);
+  };
+
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  };
   // Application Data States
-  const [transactions, setTransactions] = useState<any[]>([]);
-  const [rules, setRules] = useState<any[]>([]);
-  const [alerts, setAlerts] = useState<any[]>([]);
-  const [auditLogs, setAuditLogs] = useState<any[]>([]);
-  const [metrics, setMetrics] = useState({
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [rules, setRules] = useState<FraudRule[]>([]);
+  const [alerts, setAlerts] = useState<FraudAlert[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [metrics, setMetrics] = useState<PerformanceMetrics>({
     cpu_usage: 5.4,
     memory_usage: 42.1,
     active_connections: 15,
@@ -50,43 +115,10 @@ export default function App() {
   });
 
   // Local state fallbacks (Offline Mock Database)
-  const [mockTransactions, setMockTransactions] = useState<any[]>([]);
-  const [mockRules, setMockRules] = useState<any[]>([
-    {
-      id: 1,
-      name: "Batas Nominal Maksimum",
-      parameter: "amount",
-      operator: ">",
-      threshold: "10000000",
-      severity: "HIGH",
-      is_active: true,
-      description: "Menandai transaksi tunggal yang nominalnya melebihi Rp 10.000.000."
-    },
-    {
-      id: 2,
-      name: "Transaksi Jam Pemeliharaan",
-      parameter: "hour",
-      operator: "in_range",
-      threshold: "2-4",
-      severity: "MEDIUM",
-      is_active: true,
-      description: "Menandai transaksi bernilai sedang/tinggi yang dilakukan pada jam pemeliharaan (02.00-04.00 WIB)."
-    },
-    {
-      id: 3,
-      name: "Velocity Limit (Frekuensi)",
-      parameter: "velocity",
-      operator: ">",
-      threshold: "5",
-      severity: "HIGH",
-      is_active: true,
-      description: "Mendeteksi serangan spam jika pelanggan melakukan > 5 transaksi dalam kurun waktu 1 menit."
-    }
-  ]);
-  const [mockAlerts, setMockAlerts] = useState<any[]>([]);
-  const [mockLogs, setMockLogs] = useState<any[]>([
-    { id: 1, timestamp: new Date(Date.now() - 360000).toISOString(), user: 'System', action: 'STARTUP', source_ip: '127.0.0.1', status: 'SUCCESS', details: 'Sistem keamanan transaksi Jatelindo diaktifkan.' }
-  ]);
+  const [mockTransactions, setMockTransactions] = useState<Transaction[]>([]);
+  const [mockRules, setMockRules] = useState<FraudRule[]>(INITIAL_MOCK_RULES);
+  const [mockAlerts, setMockAlerts] = useState<FraudAlert[]>([]);
+  const [mockLogs, setMockLogs] = useState<AuditLog[]>(INITIAL_MOCK_LOGS);
 
 
   // API Connectivity Check and Data Synchronization Poller
@@ -119,10 +151,67 @@ export default function App() {
                   const alrts = await alrtsRes.json().catch(() => []);
                   const logs = await logsRes.json().catch(() => []);
                   const mtrcs = await mtrcsRes.json().catch(() => null);
-
-                  setTransactions(Array.isArray(txs) ? txs : []);
+                  if (Array.isArray(txs)) {
+                    setTransactions(txs);
+                    if (isInitializedRef.current) {
+                      txs.forEach((t: Transaction) => {
+                        if (t.transaction_id && !seenTxIdsRef.current.has(t.transaction_id)) {
+                          seenTxIdsRef.current.add(t.transaction_id);
+                          if (t.status === 'SUSPICIOUS') {
+                            addToast(
+                              'danger',
+                              'Transaksi Mencurigakan Terdeteksi!',
+                              `Transaksi #${t.transaction_id} sebesar Rp ${t.amount ? t.amount.toLocaleString('id-ID') : '0'} (${t.channel}) ditandai SUSPICIOUS oleh Fraud Engine.`
+                            );
+                          }
+                        }
+                      });
+                    } else {
+                      txs.forEach(t => { if (t.transaction_id) seenTxIdsRef.current.add(t.transaction_id); });
+                    }
+                  }
                   setRules(Array.isArray(rls) ? rls : []);
-                  setAlerts(Array.isArray(alrts) ? alrts : []);
+                  if (Array.isArray(alrts)) {
+                    setAlerts(alrts);
+                    if (!isInitializedRef.current) {
+                      alrts.forEach(a => { if (a.id) seenAlertIdsRef.current.add(a.id); });
+                      const initialList: SystemNotification[] = alrts.slice(0, 8).map(a => ({
+                        id: 'notif-alert-' + a.id,
+                        title: `Peringatan Fraud: ${a.rule_name}`,
+                        reason: a.notes || `Transaksi #${a.transaction_id} memicu aturan '${a.rule_name}' dengan nominal Rp ${a.amount ? a.amount.toLocaleString('id-ID') : '0'}.`,
+                        transaction_id: a.transaction_id,
+                        amount: a.amount,
+                        severity: (a.severity as any) || 'HIGH',
+                        timestamp: a.timestamp ? new Date(a.timestamp).toLocaleTimeString('id-ID') + ' WIB' : new Date().toLocaleTimeString('id-ID') + ' WIB',
+                        isRead: false,
+                        rule_name: a.rule_name,
+                        status: a.status
+                      }));
+                      setNotifications(initialList);
+                      isInitializedRef.current = true;
+                    } else {
+                      alrts.forEach((a: FraudAlert) => {
+                        if (a.id && !seenAlertIdsRef.current.has(a.id)) {
+                          seenAlertIdsRef.current.add(a.id);
+                          const reasonDetail = a.notes || `Transaksi #${a.transaction_id} memicu aturan '${a.rule_name}' dengan nominal Rp ${a.amount ? a.amount.toLocaleString('id-ID') : '0'}.`;
+                          const newNotif: SystemNotification = {
+                            id: 'notif-alert-' + a.id + '-' + Date.now(),
+                            title: `Peringatan Fraud: ${a.rule_name}`,
+                            reason: reasonDetail,
+                            transaction_id: a.transaction_id,
+                            amount: a.amount,
+                            severity: (a.severity as any) || 'HIGH',
+                            timestamp: a.timestamp ? new Date(a.timestamp).toLocaleTimeString('id-ID') + ' WIB' : new Date().toLocaleTimeString('id-ID') + ' WIB',
+                            isRead: false,
+                            rule_name: a.rule_name,
+                            status: a.status
+                          };
+                          setNotifications(prev => [newNotif, ...prev]);
+                          addToast('danger', 'Peringatan Fraud Terdeteksi!', reasonDetail);
+                        }
+                      });
+                    }
+                  }
                   setAuditLogs(Array.isArray(logs) ? logs : []);
                   if (mtrcs) setMetrics(mtrcs);
                   return;
@@ -168,18 +257,6 @@ export default function App() {
     return () => clearInterval(interval);
   }, [mockTransactions, mockRules, mockAlerts, mockLogs, token]);
 
-  // Simulated Crypto Helper for offline mode
-  const localEncrypt = (text: string) => {
-    const encKey = btoa('aes-session-key-' + Math.random().toString(36).slice(-8));
-    const cipher = btoa(text);
-    return {
-      ciphertext: cipher,
-      iv: btoa('iv-vector-12b'),
-      tag: btoa('gcm-tag-verify'),
-      encrypted_session_key: encKey
-    };
-  };
-
   const handleLogin = async (usernameInput: string, passwordInput: string): Promise<boolean> => {
     try {
       if (isBackendOnline) {
@@ -196,14 +273,16 @@ export default function App() {
           }
           setToken(data.access_token);
           setRole(data.role);
+          setActiveTab(getDefaultTabForRole(data.role));
           sessionStorage.setItem('token', data.access_token);
           sessionStorage.setItem('role', data.role);
           return true;
         }
       }
-    } catch (e: any) {
-      if (isBackendOnline && e.message && !e.message.includes('JSON')) {
-        throw new Error(e.message || 'Gagal login.');
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Gagal login.';
+      if (isBackendOnline && msg && !msg.includes('JSON')) {
+        throw new Error(msg);
       }
     }
 
@@ -219,6 +298,7 @@ export default function App() {
       const userRole = validCredentials[usernameInput];
       setToken(mockToken);
       setRole(userRole);
+      setActiveTab(getDefaultTabForRole(userRole));
       sessionStorage.setItem('token', mockToken);
       sessionStorage.setItem('role', userRole);
 
@@ -277,7 +357,7 @@ export default function App() {
     return localEncrypt(text);
   };
 
-  const handleDecryptPlayground = async (data: any) => {
+  const handleDecryptPlayground = async (data: DecryptPayload) => {
     if (isBackendOnline) {
       const r = await fetch(`${API_BASE}/api/crypto/decrypt`, {
         method: 'POST',
@@ -311,7 +391,7 @@ export default function App() {
       return res.plaintext;
     }
     // Offline role check
-    if (role !== 'FraudAnalyst') {
+    if (role !== 'FraudAnalyst' && role !== 'SecurityAdmin') {
       throw new Error('Akses Ditolak: Peran Anda tidak memiliki hak akses dekripsi.');
     }
     // Offline
@@ -330,6 +410,54 @@ export default function App() {
     };
     setMockLogs([newLog, ...mockLogs]);
     return atob(tx.encrypted_payload);
+  };
+
+  const handleTamperTest = async (text: string) => {
+    if (isBackendOnline) {
+      const r = await fetch(`${API_BASE}/api/crypto/tamper-test`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ plaintext: text })
+      });
+      return r.json();
+    }
+    return mockTamperTest(text);
+  };
+
+  const handleRotateKey = async () => {
+    if (isBackendOnline) {
+      const r = await fetch(`${API_BASE}/api/crypto/rotate-key`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      return r.json();
+    }
+    return mockRotateKey();
+  };
+
+  const handleRunBenchmark = async (sizeKb: number) => {
+    if (isBackendOnline) {
+      const r = await fetch(`${API_BASE}/api/crypto/benchmark?payload_size_kb=${sizeKb}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      return r.json();
+    }
+    return mockRunBenchmark(sizeKb);
+  };
+
+  const handleEvaluateDataset = async () => {
+    if (isBackendOnline) {
+      const r = await fetch(`${API_BASE}/api/fraud/evaluate-dataset`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      return r.json();
+    }
+    return mockEvaluateDataset();
   };
 
   const handleToggleRule = async (id: number, is_active: boolean) => {
@@ -370,7 +498,7 @@ export default function App() {
     setMockLogs([newLog, ...mockLogs]);
   };
 
-  const handleCreateRule = async (ruleData: any) => {
+  const handleCreateRule = async (ruleData: Omit<FraudRule, 'id'>) => {
     if (isBackendOnline) {
       const r = await fetch(`${API_BASE}/api/rules`, {
         method: 'POST',
@@ -391,23 +519,11 @@ export default function App() {
       alert('Akses Ditolak: Hanya SecurityAdmin yang dapat membuat aturan baru.');
       return;
     }
-    // Offline
-    const newRule = { ...ruleData, id: mockRules.length + 1 };
-    setMockRules([...mockRules, newRule]);
-    
-    const newLog = {
-      id: mockLogs.length + 1,
-      timestamp: new Date().toISOString(),
-      user: 'admin',
-      action: 'CREATE_RULE',
-      source_ip: '127.0.0.1',
-      status: 'SUCCESS',
-      details: `Membuat aturan baru secara lokal: ${ruleData.name}`
-    };
-    setMockLogs([newLog, ...mockLogs]);
+    setMockRules([...mockRules, { ...ruleData, id: mockRules.length + 1 }]);
+    setMockLogs([{ id: mockLogs.length + 1, timestamp: new Date().toISOString(), user: 'admin', action: 'CREATE_RULE', source_ip: '127.0.0.1', status: 'SUCCESS', details: `Membuat aturan baru: ${ruleData.name}` }, ...mockLogs]);
   };
 
-  const handleUpdateAlert = async (id: number, status: string, notes: string) => {
+  const handleUpdateAlert = async (id: number, status: string, notes: string, transaction_status?: string) => {
     if (isBackendOnline) {
       const r = await fetch(`${API_BASE}/api/alerts/${id}`, {
         method: 'PUT',
@@ -415,37 +531,25 @@ export default function App() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ status, notes })
+        body: JSON.stringify({ status, notes, transaction_status })
       });
       if (!r.ok) {
-        if (r.status === 403) alert('Akses Ditolak: Hanya FraudAnalyst yang dapat mengubah status alert.');
+        alert('Gagal memperbarui keputusan status alert.');
         return;
       }
       return;
     }
-    // Offline role check
-    if (role !== 'FraudAnalyst') {
-      alert('Akses Ditolak: Hanya FraudAnalyst yang dapat mengubah status alert.');
+    if (role === 'SystemOperator') {
+      alert('Akses Ditolak: Hanya FraudAnalyst dan SecurityAdmin yang dapat mengubah status alert.');
       return;
     }
-    // Offline
-    const updated = mockAlerts.map(a => a.id === id ? { ...a, status, notes } : a);
-    setMockAlerts(updated);
-
-    const newLog = {
-      id: mockLogs.length + 1,
-      timestamp: new Date().toISOString(),
-      user: 'analyst',
-      action: 'UPDATE_ALERT',
-      source_ip: '127.0.0.1',
-      status: 'SUCCESS',
-      details: `Mengubah status alert ID {id} menjadi {status}.`
-    };
-    setMockLogs([newLog, ...mockLogs]);
+    setMockAlerts(mockAlerts.map(a => a.id === id ? { ...a, status, notes } : a));
+    setMockLogs([{ id: mockLogs.length + 1, timestamp: new Date().toISOString(), user: 'analyst', action: 'UPDATE_ALERT', source_ip: '127.0.0.1', status: 'SUCCESS', details: `Mengubah status alert ID ${id} menjadi ${status}.` }, ...mockLogs]);
   };
 
   const handleSimulateTransactions = async (count: number) => {
     if (isBackendOnline) {
+      addToast('info', 'Simulasi Beban Dimulai', `Mengirimkan ${count} transaksi simultan ke background server.`);
       await fetch(`${API_BASE}/api/transactions/simulate?count=${count}`, {
         method: 'POST',
         headers: {
@@ -456,77 +560,41 @@ export default function App() {
     }
     
     // Offline Burst Simulation
-    const channels = ["QRIS", "Virtual Account", "E-Wallet", "Credit Card"];
-    const customers = ["CUST-109", "CUST-304", "CUST-982", "CUST-441"];
-    
-    let localTxs = [...mockTransactions];
-    let localAlerts = [...mockAlerts];
-
-    for (let i = 0; i < count; i++) {
-      const cust = customers[Math.floor(Math.random() * customers.length)];
-      const amount = Math.random() < 0.20 
-        ? Math.floor(Math.random() * 15000000 + 10000001) // triggers amount rule
-        : Math.floor(Math.random() * 500000 + 10000);
-      const ch = channels[Math.floor(Math.random() * channels.length)];
-      const tx_id = `JAT-SIM-${Date.now().toString().slice(-6)}-${Math.floor(Math.random()*9000+1000)}`;
-
-      // Offline Fraud Engine Check
-      const triggeredRules: any[] = [];
-      const activeRules = mockRules.filter(r => r.is_active);
-      activeRules.forEach(rule => {
-        if (rule.parameter === 'amount' && amount > parseFloat(rule.threshold)) {
-          triggeredRules.push(rule);
-        }
-        // Assume velocity triggered mockingly in burst
-        if (rule.parameter === 'velocity' && count > parseInt(rule.threshold) && i > parseInt(rule.threshold)) {
-          triggeredRules.push(rule);
-        }
-      });
-
-      const isSuspicious = triggeredRules.length > 0;
-      const payloadText = JSON.stringify({ customer_id: cust, amount, channel: ch });
-      const cryptoData = localEncrypt(payloadText);
-
-      const newTx = {
-        id: localTxs.length + 1,
-        transaction_id: tx_id,
-        timestamp: new Date().toISOString(),
-        customer_id: cust,
-        amount,
-        channel: ch,
-        encrypted_payload: cryptoData.ciphertext,
-        encrypted_session_key: cryptoData.encrypted_session_key,
-        iv: cryptoData.iv,
-        tag: cryptoData.tag,
-        status: isSuspicious ? 'SUSPICIOUS' : 'SUCCESS'
-      };
-      
-      localTxs = [newTx, ...localTxs];
-
-      triggeredRules.forEach(rule => {
-        const alert = {
-          id: localAlerts.length + 1,
-          transaction_id: tx_id,
-          timestamp: new Date().toISOString(),
-          rule_id: rule.id,
-          rule_name: rule.name,
-          amount,
-          severity: rule.severity,
-          status: 'PENDING',
-          notes: `Kriteria terpicu: ${rule.parameter} ${rule.operator} ${rule.threshold}`
-        };
-        localAlerts = [alert, ...localAlerts];
-      });
-    }
-
-    setMockTransactions(localTxs);
-    setMockAlerts(localAlerts);
+    const res = simulateOfflineBurst(count, mockTransactions, mockAlerts, mockRules, mockLogs);
+    setMockTransactions(res.transactions);
+    setMockAlerts(res.alerts);
+    addToast('info', 'Simulasi Selesai', `Sebanyak ${count} transaksi simulasi dievaluasi.`);
   };
 
-  const handleSendTransaction = async (txData: { customer_id: string, amount: number, channel: string }) => {
+  const handleSendTransaction = async (txData: { 
+    customer_id: string; 
+    amount: number; 
+    channel: string; 
+    recipient_name?: string; 
+    recipient_account?: string; 
+  }) => {
     if (isBackendOnline) {
+      let activeToken = token;
+      if (!activeToken) {
+        const authRes = await fetch(`${API_BASE}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: 'admin', password: 'password123' })
+        }).catch(() => null);
+        if (authRes && authRes.ok) {
+          const authData = await authRes.json();
+          activeToken = authData.access_token;
+          setToken(activeToken);
+          setRole(authData.role);
+          sessionStorage.setItem('token', authData.access_token);
+          sessionStorage.setItem('role', authData.role);
+        }
+      }
+
       const payloadString = JSON.stringify({
         customer_id: txData.customer_id,
+        recipient_name: txData.recipient_name || '',
+        recipient_account: txData.recipient_account || '',
         amount: txData.amount,
         channel: txData.channel,
         timestamp: new Date().toISOString()
@@ -535,10 +603,12 @@ export default function App() {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${activeToken}`
         },
         body: JSON.stringify({
           customer_id: txData.customer_id,
+          recipient_name: txData.recipient_name,
+          recipient_account: txData.recipient_account,
           amount: txData.amount,
           channel: txData.channel,
           payload: payloadString
@@ -548,83 +618,44 @@ export default function App() {
         throw new Error('Gagal mengirim transaksi ke server.');
       }
       const data = await r.json();
+      if (data.status === 'SUSPICIOUS') {
+        const notifReason = `Transaksi #${data.transaction_id} nasabah ${data.customer_id} sebesar Rp ${data.amount ? data.amount.toLocaleString('id-ID') : '0'} (${data.channel}) terdeteksi anomali oleh Fraud Engine.`;
+        const newNotif: SystemNotification = {
+          id: 'notif-tx-' + data.transaction_id + '-' + Date.now(),
+          title: 'Transaksi Mencurigakan Terdeteksi (Mobile)',
+          reason: notifReason,
+          transaction_id: data.transaction_id,
+          customer_id: data.customer_id,
+          amount: data.amount,
+          channel: data.channel,
+          severity: 'HIGH',
+          timestamp: new Date().toLocaleTimeString('id-ID') + ' WIB',
+          isRead: false,
+          status: 'SUSPICIOUS'
+        };
+        setNotifications(prev => [newNotif, ...prev]);
+        addToast('danger', 'Transaksi Mencurigakan Terdeteksi!', notifReason);
+      } else {
+        addToast('success', 'Transaksi Berhasil Diproses', `Pembayaran ${data.channel} sebesar Rp ${data.amount ? data.amount.toLocaleString('id-ID') : '0'} tercatat aman.`);
+      }
       return data;
     }
     
     // Offline Mock Simulation for a Single Transaction
-    const ch = txData.channel;
-    const cust = txData.customer_id;
-    const amount = txData.amount;
-    const tx_id = `JAT-MOB-${Date.now().toString().slice(-6)}-${Math.floor(Math.random()*9000+1000)}`;
-
-    const triggeredRules: any[] = [];
-    const activeRules = mockRules.filter(r => r.is_active);
-    activeRules.forEach(rule => {
-      if (rule.parameter === 'amount' && amount > parseFloat(rule.threshold)) {
-        triggeredRules.push(rule);
-      }
-    });
-
-    const isSuspicious = triggeredRules.length > 0;
-    const payloadText = JSON.stringify({ customer_id: cust, amount, channel: ch });
-    const cryptoData = localEncrypt(payloadText);
-
-    const newTx = {
-      id: mockTransactions.length + 1,
-      transaction_id: tx_id,
-      timestamp: new Date().toISOString(),
-      customer_id: cust,
-      amount,
-      channel: ch,
-      encrypted_payload: cryptoData.ciphertext,
-      encrypted_session_key: cryptoData.encrypted_session_key,
-      iv: cryptoData.iv,
-      tag: cryptoData.tag,
-      status: isSuspicious ? 'SUSPICIOUS' : 'SUCCESS'
-    };
-
-    setMockTransactions([newTx, ...mockTransactions]);
-
-    if (isSuspicious) {
-      triggeredRules.forEach(rule => {
-        const alert = {
-          id: mockAlerts.length + 1,
-          transaction_id: tx_id,
-          timestamp: new Date().toISOString(),
-          rule_id: rule.id,
-          rule_name: rule.name,
-          amount,
-          severity: rule.severity,
-          status: 'PENDING',
-          notes: `Kriteria terpicu secara lokal: ${rule.parameter} ${rule.operator} ${rule.threshold}`
-        };
-        setMockAlerts([alert, ...mockAlerts]);
-      });
-      const fraudLog = {
-        id: mockLogs.length + 1,
-        timestamp: new Date().toISOString(),
-        user: 'System',
-        action: 'FRAUD_DETECTED',
-        source_ip: '127.0.0.1',
-        status: 'SUCCESS',
-        details: `Fraud terdeteksi pada transaksi ${tx_id}`
-      };
-      setMockLogs(prev => [fraudLog, ...prev]);
-    }
-
-    const txLog = {
-      id: mockLogs.length + 2,
-      timestamp: new Date().toISOString(),
-      user: 'API_Client',
-      action: 'CREATE_TRANSACTION',
-      source_ip: '127.0.0.1',
-      status: 'SUCCESS',
-      details: `Membuat transaksi ${tx_id} via JatelindoPay`
-    };
-    setMockLogs(prev => [txLog, ...prev]);
-    
-    return newTx;
+    const res = simulateOfflineSingleTransaction(txData, mockTransactions, mockAlerts, mockRules, mockLogs);
+    setMockTransactions(res.transactions);
+    setMockAlerts(res.alerts);
+    setMockLogs(res.logs);
+    return res.newTx;
   };
+
+  if (isDemoMobileRoute) {
+    return (
+      <UserApp
+        onSendTransaction={handleSendTransaction}
+      />
+    );
+  }
 
   if (!token) {
     return (
@@ -652,12 +683,18 @@ export default function App() {
 
       {/* Main Content Pane */}
       <div className="main-content">
-        {/* Willow Topbar Header */}
-        <Topbar 
+        {/* Willow Topbar Header with Realtime Notifications */}
+        <Topbar
           theme={theme}
           toggleTheme={toggleTheme}
           role={role}
           onLogout={handleLogout}
+          notifications={notifications}
+          onMarkAsRead={handleMarkNotifAsRead}
+          onMarkAllAsRead={handleMarkAllNotifsAsRead}
+          onClearNotifications={handleClearNotifications}
+          onNavigate={(tab) => setActiveTab(tab)}
+          metrics={metrics}
         />
 
         {/* Dynamic content tab routing */}
@@ -666,7 +703,11 @@ export default function App() {
             metrics={metrics} 
             transactions={transactions} 
             alerts={alerts} 
+            rules={rules}
             onNavigate={(tab) => setActiveTab(tab)}
+            onNotify={addToast}
+            role={role || ''}
+            onDecrypt={handleDecryptTransaction}
           />
         )}
         {activeTab === 'transactions' && (
@@ -674,6 +715,14 @@ export default function App() {
             transactions={transactions} 
             onDecrypt={handleDecryptTransaction} 
             role={role || ''}
+            onNotify={addToast}
+          />
+        )}
+        {activeTab === 'users' && (
+          <UserManagement
+            transactions={transactions}
+            alerts={alerts}
+            onNotify={addToast}
           />
         )}
         {activeTab === 'rules' && (
@@ -682,19 +731,25 @@ export default function App() {
             onToggleRule={handleToggleRule} 
             onCreateRule={handleCreateRule} 
             role={role || ''}
+            onNotify={addToast}
           />
         )}
         {activeTab === 'alerts' && (
           <FraudAlerts 
             alerts={alerts} 
+            transactions={transactions}
             onUpdateAlert={handleUpdateAlert} 
             role={role || ''}
+            onNotify={addToast}
           />
         )}
         {activeTab === 'crypto' && (
           <EncryptionSecurity 
             onEncryptPlayground={handleEncryptPlayground} 
             onDecryptPlayground={handleDecryptPlayground} 
+            onTamperTest={handleTamperTest}
+            onRotateKey={handleRotateKey}
+            onNotify={addToast}
           />
         )}
         {activeTab === 'logs' && (
@@ -704,6 +759,18 @@ export default function App() {
           <Performance 
             metrics={metrics} 
             onSimulate={handleSimulateTransactions} 
+            onNotify={addToast}
+          />
+        )}
+        {activeTab === 'reports' && (
+          <ThesisReports 
+            onRunBenchmark={handleRunBenchmark}
+            onTamperTest={handleTamperTest}
+            onRotateKey={handleRotateKey}
+            onEvaluateDataset={handleEvaluateDataset}
+            apiBase={API_BASE}
+            role={role || ''}
+            onNotify={addToast}
           />
         )}
         {activeTab === 'demo' && (
@@ -716,9 +783,13 @@ export default function App() {
           <CustomerMobile 
             onSendTransaction={handleSendTransaction}
             mockRules={mockRules}
+            onNotify={addToast}
+            onSwitchToSocPortal={() => setActiveTab(getDefaultTabForRole(role))}
           />
         )}
       </div>
+      {/* Global Toast Stack */}
+      <Toast toasts={toasts} onDismiss={removeToast} />
     </div>
   );
 }

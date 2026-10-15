@@ -42,3 +42,31 @@ def decrypt_data(req: security_schemas.DecryptRequest, request: Request, db: Ses
     except Exception as e:
         log_audit(db, "SystemOperator", "DECRYPT_DATA", f"Gagal dekripsi: {str(e)}", "FAILED", request.client.host)
         raise HTTPException(status_code=400, detail=f"Gagal melakukan dekripsi: {str(e)}")
+
+@router.post("/tamper-test")
+def tamper_test(req: security_schemas.EncryptRequest, request: Request, db: Session = Depends(get_db)):
+    try:
+        res = crypto_helper.simulate_tampering_attack(req.plaintext)
+        log_audit(db, "SecurityAdmin", "TAMPER_ATTACK_SIMULATED", f"Uji integritas tampering: status={res['security_status']}", "SUCCESS", request.client.host)
+        return res
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/rotate-key")
+def rotate_key(request: Request, current_user = Depends(get_current_user), db: Session = Depends(get_db)):
+    try:
+        res = crypto_helper.rotate_rsa_keys()
+        actor = current_user.username if current_user else "SecurityAdmin"
+        log_audit(db, actor, "KEY_ROTATION", f"Rotasi kunci RSA-2048 baru: {res['key_fingerprint']}", "SUCCESS", request.client.host)
+        return res
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/benchmark")
+def run_benchmark(request: Request, payload_size_kb: int = 1, db: Session = Depends(get_db)):
+    try:
+        res = crypto_helper.benchmark_cryptography(payload_size_kb)
+        log_audit(db, "System", "BENCHMARK_EVALUATION", f"Benchmark ilmiah kriptografi payload {payload_size_kb}KB", "SUCCESS", request.client.host)
+        return res
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

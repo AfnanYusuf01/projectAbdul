@@ -1,0 +1,778 @@
+/* ============================================================ */
+/* J-PAY USER MOBILE APPLICATION STYLING                         */
+/* Theme: Deep Sapphire & Ocean Cyan (Distinct from DANA blue)   */
+/* Layout: 100% Identical to DANA Mobile App UI (Images #1-#5)   */
+/* ============================================================ */
+
+:root {
+  --jpay-primary: #0284c7;
+  --jpay-primary-dark: #0369a1;
+  --jpay-primary-gradient: linear-gradient(180deg, #0284c7 0%, #0369a1 100%);
+  --jpay-primary-soft: #e0f2fe;
+  --jpay-accent-cyan: #06b6d4;
+  --jpay-accent-gold: #f59e0b;
+  --jpay-accent-green: #10b981;
+  --jpay-accent-red: #ef4444;
+  --jpay-bg: #f8fafc;
+  --jpay-card: #ffffff;
+  --jpay-border: #e2e8f0;
+  --jpay-text-main: #0f172a;
+  --jpay-text-muted: #64748b;
+  --jpay-text-light: #94a3b8;
+}
+
+/* Full-Screen Mobile Viewport (Exact Image #3) */
+.jpay-viewport-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  background-color: var(--jpay-bg);
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: var(--jpay-text-main);
+  overflow: hidden;
+}
+
+.jpay-mobile-frame {
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  min-height: 0;
+  background-color: var(--jpay-bg);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+/* Status Bar */
+.jpay-status-bar {
+  height: 38px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #ffffff;
+  background-color: var(--jpay-primary);
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.jpay-status-icons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+}
+
+/* App Header (Image #1 Top Banner) */
+.jpay-header {
+  background: var(--jpay-primary-gradient);
+  color: #ffffff;
+  padding: 8px 16px 18px 16px;
+  flex-shrink: 0;
+}
+
+.jpay-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.jpay-balance-area {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.jpay-logo-badge {
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 1.1rem;
+  color: #ffffff;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+}
+
+.jpay-balance-val {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.jpay-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.jpay-header-icon-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.jpay-header-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.jpay-notif-dot {
+  position: absolute;
+  top: 5px;
+  right: 6px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #ef4444;
+  border: 1.5px solid #0284c7;
+}
+
+/* 4 Action Pills (Image #1: Scan, Top up, Send, Request) */
+.jpay-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.jpay-action-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.jpay-action-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.jpay-action-pill:active .jpay-action-icon-box {
+  transform: scale(0.92);
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.jpay-action-label {
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+
+/* Scrollable Content Body */
+.jpay-scroll-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 12px 14px 96px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  scrollbar-width: none;
+}
+
+.jpay-scroll-body::-webkit-scrollbar {
+  display: none;
+}
+
+/* White Card Containers */
+.jpay-card {
+  background-color: var(--jpay-card);
+  border-radius: 18px;
+  padding: 14px 16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  border: 1px solid #f1f5f9;
+}
+
+/* Electricity / Service Highlight Card (Image #1) */
+.jpay-electricity-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background-color: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+}
+
+.jpay-electricity-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.jpay-electricity-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: #fef3c7;
+  color: #f59e0b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jpay-electricity-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--jpay-text-main);
+}
+
+.jpay-electricity-sub {
+  font-size: 0.74rem;
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+.jpay-btn-pay-now {
+  background-color: var(--jpay-primary);
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 7px 14px;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  letter-spacing: 0.3px;
+}
+
+/* 8 Grid Services (Image #1) */
+.jpay-services-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px 6px;
+  padding: 16px 8px;
+}
+
+.jpay-service-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+.jpay-service-icon-box {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  transition: transform 0.15s ease;
+}
+
+.jpay-service-item:active .jpay-service-icon-box {
+  transform: scale(0.92);
+}
+
+.jpay-service-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--jpay-text-main);
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* Feed Section (Image #1) */
+.jpay-feed-card {
+  background-color: #ffffff;
+  border-radius: 18px;
+  padding: 14px 16px;
+  border: 1px solid var(--jpay-border);
+}
+
+.jpay-feed-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.jpay-feed-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--jpay-text-main);
+}
+
+.jpay-feed-sub {
+  font-size: 0.72rem;
+  color: var(--jpay-text-muted);
+}
+
+.jpay-btn-explore {
+  border: 1px solid var(--jpay-primary);
+  color: var(--jpay-primary);
+  background: transparent;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 16px;
+  cursor: pointer;
+}
+
+.jpay-feed-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  background: var(--jpay-bg);
+  border-radius: 12px;
+}
+
+.jpay-feed-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #bfdbfe;
+  color: #1d4ed8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.jpay-feed-text {
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: var(--jpay-text-main);
+}
+
+/* Promo Banner Carousel (Image #1) */
+.jpay-banner-card {
+  border-radius: 18px;
+  padding: 16px 18px;
+  background: linear-gradient(135deg, #0284c7 0%, #0d9488 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.25);
+}
+
+.jpay-banner-badge {
+  background: rgba(255, 255, 255, 0.2);
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 6px;
+  display: inline-block;
+  margin-bottom: 4px;
+}
+
+.jpay-banner-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
+.jpay-banner-sub {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Bottom Navigation Bar (Image #1) */
+.jpay-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(64px + env(safe-area-inset-bottom, 0px));
+  padding: 0 4px env(safe-area-inset-bottom, 0px) 4px;
+  background-color: #ffffff;
+  border-top: 1px solid var(--jpay-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 150;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.04);
+  box-sizing: border-box;
+}
+
+.jpay-nav-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  background: none;
+  border: none;
+  color: var(--jpay-text-muted);
+  cursor: pointer;
+  flex: 1;
+  padding: 6px 0;
+  transition: color 0.15s ease;
+}
+
+.jpay-nav-tab.active {
+  color: var(--jpay-primary);
+  font-weight: 700;
+}
+
+.jpay-nav-label {
+  font-size: 0.68rem;
+}
+
+/* Floating Center PAY Button */
+.jpay-pay-btn-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: -24px;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.jpay-pay-circle {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: var(--jpay-primary-gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  box-shadow: 0 6px 16px rgba(2, 132, 199, 0.45);
+  border: 3.5px solid #ffffff;
+  transition: transform 0.15s ease;
+}
+
+.jpay-pay-btn-wrap:active .jpay-pay-circle {
+  transform: scale(0.92);
+}
+
+.jpay-pay-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: var(--jpay-primary);
+  margin-top: 2px;
+}
+
+/* ============================================================ */
+/* SUB-SCREEN HEADERS & VIEWS (IMAGES #2, #3, #4, #5)           */
+/* ============================================================ */
+
+.jpay-screen-header {
+  height: 52px;
+  background-color: var(--jpay-primary);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.jpay-screen-title {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+
+.jpay-header-back-btn {
+  background: none;
+  border: none;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 4px;
+  font-size: 1.2rem;
+}
+
+/* HISTORY / AKTIVITAS SCREEN (IMAGE #2) */
+.jpay-history-search-bar {
+  display: flex;
+  align-items: center;
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 8px 14px;
+  border: 1px solid var(--jpay-border);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.jpay-history-search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 0.85rem;
+  color: var(--jpay-text-main);
+  background: transparent;
+}
+
+.jpay-qris-promo-banner {
+  background: #ffffff;
+  border: 1px solid #fed7aa;
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  cursor: pointer;
+}
+
+.jpay-history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 12px;
+  background-color: #ffffff;
+  border-radius: 14px;
+  margin-bottom: 8px;
+  border: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.jpay-history-item:hover {
+  background-color: #f8fafc;
+}
+
+.jpay-history-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.jpay-history-icon.out {
+  background-color: #e0f2fe;
+  color: #0284c7;
+}
+
+.jpay-history-icon.in {
+  background-color: #dcfce7;
+  color: #10b981;
+}
+
+.jpay-history-main {
+  flex: 1;
+  margin-left: 12px;
+}
+
+.jpay-history-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--jpay-text-main);
+  margin-bottom: 2px;
+}
+
+.jpay-history-date {
+  font-size: 0.72rem;
+  color: var(--jpay-text-muted);
+}
+
+.jpay-history-amount {
+  font-size: 0.92rem;
+  font-weight: 800;
+  text-align: right;
+}
+
+.jpay-history-amount.out {
+  color: var(--jpay-text-main);
+}
+
+.jpay-history-amount.in {
+  color: #10b981;
+}
+
+/* NUMERIC KEYPAD FOR VA & PIN (IMAGE #4) */
+.jpay-numpad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 12px 16px 24px 16px;
+  background-color: #ffffff;
+  border-top: 1px solid var(--jpay-border);
+  flex-shrink: 0;
+}
+
+.jpay-numpad-key {
+  height: 54px;
+  background-color: #f8fafc;
+  border: 1px solid var(--jpay-border);
+  border-radius: 14px;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--jpay-text-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.1s ease, transform 0.1s ease;
+}
+
+.jpay-numpad-key:active {
+  background-color: #e2e8f0;
+  transform: scale(0.96);
+}
+
+.jpay-numpad-action {
+  background-color: var(--jpay-primary);
+  color: #ffffff;
+  border-color: var(--jpay-primary);
+}
+
+.jpay-numpad-action:active {
+  background-color: var(--jpay-primary-dark);
+}
+
+/* RECENT CONTACTS ROW (IMAGE #5) */
+.jpay-recent-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background-color: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  margin-bottom: 8px;
+}
+
+.jpay-recent-item:hover {
+  background-color: #f8fafc;
+}
+
+.jpay-recent-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #ea580c;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+/* QRIS SCANNER VIEWFINDER (IMAGE #3) */
+.jpay-scanner-container {
+  background-color: #0f172a;
+  color: #ffffff;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  flex: 1;
+}
+
+.jpay-scanner-box {
+  width: 260px;
+  height: 260px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 24px;
+  position: relative;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jpay-scanner-corner {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-color: #00b4d8;
+  border-style: solid;
+}
+
+.jpay-scanner-laser {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #00b4d8, transparent);
+  box-shadow: 0 0 12px #00b4d8;
+  animation: laserScan 2s infinite ease-in-out;
+}
+
+@keyframes laserScan {
+  0% { top: 5%; }
+  50% { top: 95%; }
+  100% { top: 5%; }
+}
+
+/* Mode Switcher Button on Top Desktop Header */
+.jpay-app-mode-switcher {
+  position: fixed;
+  top: 14px;
+  left: 20px;
+  z-index: 99999;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 24px;
+  padding: 6px 14px;
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.jpay-app-mode-switcher:hover {
+  background: rgba(15, 23, 42, 1);
+  transform: translateY(-1px);
+}

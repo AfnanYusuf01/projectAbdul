@@ -94,13 +94,12 @@ class TestRBACMiddleware(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 403)
 
-        # Admin tries to decrypt - 403 Forbidden
+        # Super Admin (SecurityAdmin) tries to decrypt - passes 403 RBAC check (400 due to dummy test key)
         response = self.client.post(
             f"/api/transactions/{self.mock_tx.id}/decrypt",
             headers=self.admin_headers
         )
-        self.assertEqual(response.status_code, 403)
-
+        self.assertEqual(response.status_code, 400)
         # Analyst tries to decrypt - 400 (or 200 if key is valid, but mock tx has invalid crypto key)
         # Because the dummy keys are invalid, it throws a decryption error which returns 400,
         # but the request passes the 403 RBAC check! If it was blocked by RBAC it would be 403.

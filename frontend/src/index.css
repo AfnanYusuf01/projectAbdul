@@ -198,10 +198,23 @@ html, body, #root {
   box-shadow: var(--shadow-pill);
 }
 
+.nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
 .willow-nav-item.active .nav-icon {
   color: #ffffff;
 }
 
+.willow-nav-item.active .willow-nav-badge {
+  background-color: #ffffff !important;
+  color: var(--accent-red) !important;
+}
 .willow-nav-badge {
   margin-left: auto;
   background-color: var(--accent-red);

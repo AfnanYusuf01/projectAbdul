@@ -42,6 +42,8 @@ class DBTransaction(Base):
     customer_id = Column(String(50), index=True)
     amount = Column(Float)
     channel = Column(String(50))
+    recipient_name = Column(String(100), nullable=True)
+    recipient_account = Column(String(100), nullable=True)
     
     encrypted_payload = Column(Text)
     encrypted_session_key = Column(Text)

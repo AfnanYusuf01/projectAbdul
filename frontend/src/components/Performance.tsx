@@ -1,33 +1,33 @@
 import React, { useState } from 'react';
-
+import type { PerformanceMetrics } from '../types';
+import { ZapIcon, FileSpreadsheetIcon } from './Icons';
 interface PerformanceProps {
-  metrics: {
-    cpu_usage: number;
-    memory_usage: number;
-    active_connections: number;
-    avg_encryption_time_ms: number;
-    avg_decryption_time_ms: number;
-    total_transactions_processed: number;
-    throughput_tps: number;
-  };
+  metrics: PerformanceMetrics;
   onSimulate: (count: number) => Promise<void>;
+  onNotify?: (type: 'success' | 'danger' | 'warning' | 'info', title: string, message: string) => void;
 }
 
-export const Performance: React.FC<PerformanceProps> = ({ metrics, onSimulate }) => {
+export const Performance: React.FC<PerformanceProps> = ({
+  metrics,
+  onSimulate,
+  onNotify
+}) => {
   const [burstCount, setBurstCount] = useState(25);
   const [simulating, setSimulating] = useState(false);
+
 
   const handleSimulate = async () => {
     setSimulating(true);
     try {
       await onSimulate(burstCount);
-      alert(`Simulasi ${burstCount} transaksi berhasil dimulai di background server.`);
-    } catch (err) {
-      alert('Gagal menjalankan simulasi.');
-    } finally {
+      onNotify?.('info', 'Simulasi Beban Dimulai', `Mengirimkan ${burstCount} transaksi simultan ke background server.`);
+    } catch {
+      onNotify?.('danger', 'Gagal Menjalankan Simulasi', 'Terjadi kesalahan saat memicu simulasi transaksi.');
       setSimulating(false);
     }
   };
+
+
 
   // SVG Gauge calculations
   const radius = 40;
@@ -39,13 +39,13 @@ export const Performance: React.FC<PerformanceProps> = ({ metrics, onSimulate })
   };
 
   return (
-    <div className="view-container">
+    <div className="view-container animate-fade-in">
       {/* Page Header */}
       <div className="view-header">
         <div>
           <h2 className="view-header-title">Performa & Telemetri Sistem (System Metrics)</h2>
           <p className="view-header-desc">
-            Pemantauan utilisasi perangkat keras, kecepatan operasi kriptografi (latency), dan simulator beban transaksi burst.
+            Evaluasi empiris kecepatan komputasi kriptografi, utilisasi server, dan simulator beban kerja (Bab IV Skripsi).
           </p>
         </div>
         <span className="badge badge-success" style={{ padding: '6px 14px' }}>
@@ -53,45 +53,34 @@ export const Performance: React.FC<PerformanceProps> = ({ metrics, onSimulate })
         </span>
       </div>
 
-      {/* Simulation Controller */}
-      <div className="card">
-        <div className="card-title">Simulator Beban Sistem (Transaction Burst Simulator)</div>
-        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '15px' }}>
-          Gunakan simulator ini untuk memicu ledakan transaksi pembayaran elektronik dalam jumlah besar. Ini akan mengevaluasi aturan fraud secara beruntun, melakukan enkripsi hybrid AES-256 + RSA secara simultan, dan menghasilkan log audit secara dinamis.
-        </p>
-        <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span className="form-label" style={{ marginBottom: 0 }}>Jumlah Transaksi:</span>
-            <input 
-              type="number" 
-              className="form-control" 
-              style={{ width: '80px', padding: '6px' }}
-              value={burstCount} 
-              onChange={(e) => setBurstCount(parseInt(e.target.value))}
-              min="1"
-              max="200"
-            />
+      {/* Information Banner for Thesis Report Suite */}
+      <div style={{ backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '12px', padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ width: '38px', height: '38px', borderRadius: '10px', backgroundColor: '#dbeafe', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <FileSpreadsheetIcon size={20} />
           </div>
-          <button 
-            className="btn btn-primary" 
-            onClick={handleSimulate}
-            disabled={simulating}
-          >
-            ⚡ Kirim Transaksi Burst
-          </button>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#1e40af' }}>
+              Pusat Evaluasi Akademik & Laporan Skripsi (Bab IV)
+            </div>
+            <div style={{ fontSize: '0.76rem', color: '#3b82f6' }}>
+              Tolok ukur komparasi algoritma ilmiah (Bab 4.1), uji integritas (Bab 4.2), dan confusion matrix (Bab 4.3) kini dipusatkan pada menu khusus <strong>Laporan Evaluasi</strong>.
+            </div>
+          </div>
         </div>
       </div>
 
+      {/* SECTION 2: TELEMETRY & HARDWARE RESOURCE GRAPHS */}
       <div className="grid-half">
         {/* Latency Metrics */}
-        <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <div className="card-title">Metrik Kecepatan Kriptografi (Latency)</div>
+        <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+          <div className="card-title">Metrik Kecepatan Kriptografi Operasional (Real-time Latency)</div>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px', fontSize: '0.85rem' }}>
                 <span>Rata-Rata Waktu Enkripsi (AES-256 + RSA)</span>
-                <span className="mono-text" style={{ color: 'var(--accent-cyan)' }}>{metrics.avg_encryption_time_ms} ms</span>
+                <span className="mono-text" style={{ color: 'var(--accent-cyan)', fontWeight: 700 }}>{metrics.avg_encryption_time_ms} ms</span>
               </div>
               <div style={{ width: '100%', height: '8px', background: 'var(--border-color)', borderRadius: '4px', overflow: 'hidden' }}>
                 <div style={{ width: `${Math.min((metrics.avg_encryption_time_ms / 5) * 100, 100)}%`, height: '100%', background: 'var(--accent-cyan)', borderRadius: '4px' }}></div>
@@ -101,15 +90,15 @@ export const Performance: React.FC<PerformanceProps> = ({ metrics, onSimulate })
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px', fontSize: '0.85rem' }}>
                 <span>Rata-Rata Waktu Dekripsi (RSA + AES Decrypt)</span>
-                <span className="mono-text" style={{ color: 'var(--accent-green)' }}>{metrics.avg_decryption_time_ms} ms</span>
+                <span className="mono-text" style={{ color: 'var(--accent-green)', fontWeight: 700 }}>{metrics.avg_decryption_time_ms} ms</span>
               </div>
               <div style={{ width: '100%', height: '8px', background: 'var(--border-color)', borderRadius: '4px', overflow: 'hidden' }}>
                 <div style={{ width: `${Math.min((metrics.avg_decryption_time_ms / 10) * 100, 100)}%`, height: '100%', background: 'var(--accent-green)', borderRadius: '4px' }}></div>
               </div>
             </div>
             
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', borderLeft: '3px solid var(--accent-green)', paddingLeft: '10px', marginTop: '10px' }}>
-              ℹ️ Enkripsi hybrid menggunakan kunci RSA 2048-bit untuk membungkus kunci sesi AES-256. Waktu pemrosesan di bawah 1.5ms dikategorikan sangat cepat untuk pembayaran real-time.
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', borderLeft: '3px solid var(--accent-green)', paddingLeft: '10px', marginTop: '6px' }}>
+              ℹ️ Enkripsi hybrid menggunakan kunci RSA 2048-bit untuk mengamankan kunci sesi AES-256. Waktu di bawah 1.5ms memenuhi SLA transaksi switching perbankan.
             </div>
           </div>
         </div>
@@ -169,6 +158,38 @@ export const Performance: React.FC<PerformanceProps> = ({ metrics, onSimulate })
             <span>Koneksi Database Aktif:</span>
             <strong className="mono-text" style={{ color: 'var(--accent-cyan)' }}>{metrics.active_connections} Pool</strong>
           </div>
+        </div>
+      </div>
+
+      {/* SECTION 3: TRANSACTION BURST SIMULATOR */}
+      <div className="card" style={{ marginTop: '4px' }}>
+        <div className="card-title">Simulator Beban Sistem (Transaction Burst Simulator)</div>
+        <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '14px' }}>
+          Gunakan simulator ini untuk memicu ledakan transaksi pembayaran elektronik dalam jumlah besar secara simultan guna menguji ketahanan throughput dan evaluasi aturan fraud beruntun.
+        </p>
+        <div style={{ display: 'flex', gap: '15px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span className="form-label" style={{ marginBottom: 0 }}>Jumlah Transaksi:</span>
+            <input 
+              type="number" 
+              className="form-control" 
+              style={{ width: '80px', padding: '6px' }}
+              value={burstCount} 
+              onChange={(e) => setBurstCount(parseInt(e.target.value))}
+              min="1"
+              max="200"
+            />
+          </div>
+          <button 
+            className="btn btn-primary" 
+            onClick={handleSimulate}
+            disabled={simulating}
+          >
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <ZapIcon size={14} />
+              <span>Kirim Transaksi Burst</span>
+            </span>
+          </button>
         </div>
       </div>
     </div>
