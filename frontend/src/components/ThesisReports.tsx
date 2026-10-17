@@ -140,7 +140,7 @@ F1-Score: ${evalResult.f1_score_pct}%`;
     }
   };
   const handleDownloadFullCSV = () => {
-    const base = apiBase || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:8000' : '');
+    const base = apiBase || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:8001' : '');
     window.open(`${base}/api/reports/export-thesis-data`, '_blank');
     onNotify?.('success', 'Unduhan Dimulai', 'File laporan_evaluasi_skripsi_jatelindo.csv berhasil diunduh.');
   };
